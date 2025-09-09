@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Search,
   Settings,
@@ -20,7 +20,6 @@ const DribbbleSearch = () => {
   const [showResults, setShowResults] = useState(false);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
 
-
   // ✅ keep filters in state so they can toggle
   const [filterOptions, setFilterOptions] = useState([
     { name: "Files", icon: FileText, enabled: true },
@@ -28,16 +27,24 @@ const DribbbleSearch = () => {
     { name: "Chats", icon: MessageCircle, enabled: false },
     { name: "Lists", icon: List, enabled: false },
   ]);
-const [filters, setFilters] = useState(filterOptions);
+  const [filters, setFilters] = useState(filterOptions);
+  const searchInputRef = useRef(null);
 
-const onToggleFilter = (name) => {
-  setFilters((prev) =>
-    prev.map((f) =>
-      f.name === name ? { ...f, enabled: !f.enabled } : f
-    )
-  );
-};
-
+  const onToggleFilter = (name) => {
+    setFilters((prev) =>
+      prev.map((f) => (f.name === name ? { ...f, enabled: !f.enabled } : f))
+    );
+  };
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key.toLowerCase() === "s" && !e.target.matches("input, textarea")) {
+        e.preventDefault(); // prevent typing "s" in other places
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const searchResults = [
     {
@@ -86,18 +93,18 @@ const onToggleFilter = (name) => {
       icon: Folder,
     },
   ];
-// derive tabs from filters
-const tabs = [
-  { name: "All", count: searchResults.length }, // always show All
-  ...filters
-    .filter((f) => f.enabled) // only enabled filters become tabs
-    .map((f) => ({
-      name: f.name,
-      count: searchResults.filter((r) =>
-        r.type.toLowerCase().includes(f.name.toLowerCase())
-      ).length,
-    })),
-];
+  // derive tabs from filters
+  const tabs = [
+    { name: "All", count: searchResults.length }, // always show All
+    ...filters
+      .filter((f) => f.enabled) // only enabled filters become tabs
+      .map((f) => ({
+        name: f.name,
+        count: searchResults.filter((r) =>
+          r.type.toLowerCase().includes(f.name.toLowerCase())
+        ).length,
+      })),
+  ];
 
   const handleSearch = (value) => {
     setSearchQuery(value);
@@ -133,9 +140,7 @@ const tabs = [
   const toggleFilter = (name) => {
     setFilterOptions((prev) =>
       prev.map((option) =>
-        option.name === name
-          ? { ...option, enabled: !option.enabled }
-          : option
+        option.name === name ? { ...option, enabled: !option.enabled } : option
       )
     );
   };
@@ -176,6 +181,7 @@ const tabs = [
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
+              ref={searchInputRef} // ✅ attach ref
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Searching is easier"
@@ -209,57 +215,57 @@ const tabs = [
             <div className="flex items-center justify-between">
               <div className="flex space-x-6">
                 {tabs.map((tab) => (
-    <button
-      key={tab.name}
-      onClick={() => setActiveTab(tab.name)}
-      className={`flex items-center space-x-2 pb-2 border-b-2 transition-all duration-300 ${
-        activeTab === tab.name
-          ? "border-black text-black font-medium"
-          : "border-transparent text-gray-500 hover:text-gray-700"
-      }`}
-    >
-      <span>{tab.name}</span>
-      <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-        {tab.count}
-      </span>
-    </button>
-  ))}
+                  <button
+                    key={tab.name}
+                    onClick={() => setActiveTab(tab.name)}
+                    className={`flex items-center space-x-2 pb-2 border-b-2 transition-all duration-300 ${
+                      activeTab === tab.name
+                        ? "border-black text-black font-medium"
+                        : "border-transparent text-gray-500 hover:text-gray-700"
+                    }`}
+                  >
+                    <span>{tab.name}</span>
+                    <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
               </div>
-             <div className="relative">
-  <button
-    onClick={() => setShowFilterMenu(!showFilterMenu)}
-    className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-300"
-  >
-    <Settings className="w-5 h-5 text-gray-400" />
-  </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowFilterMenu(!showFilterMenu)}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-300"
+                >
+                  <Settings className="w-5 h-5 text-gray-400" />
+                </button>
 
-  {/* Filter Menu */}
-  <div className={`filter-menu ${showFilterMenu ? "open" : ""}`}>
-    {filters.map((option) => (
-      <div
-        key={option.name}
-        className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 cursor-pointer"
-        onClick={() => onToggleFilter(option.name)}
-      >
-        <div className="flex items-center space-x-3">
-          <option.icon className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-700">{option.name}</span>
-        </div>
-        <div
-          className={`w-10 h-6 rounded-full flex items-center transition-colors duration-200 ${
-            option.enabled ? "bg-black" : "bg-gray-200"
-          }`}
-        >
-          <div
-            className={`w-4 h-4 rounded-full bg-white transform transition-transform duration-200 ${
-              option.enabled ? "translate-x-5" : "translate-x-1"
-            }`}
-          ></div>
-        </div>
-      </div>
-    ))}
-  </div>
-</div>
+                {/* Filter Menu */}
+                <div className={`filter-menu ${showFilterMenu ? "open" : ""}`}>
+                  {filters.map((option) => (
+                    <div
+                      key={option.name}
+                      className="flex items-center justify-between px-4 py-2 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => onToggleFilter(option.name)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <option.icon className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-700">{option.name}</span>
+                      </div>
+                      <div
+                        className={`w-10 h-6 rounded-full flex items-center transition-colors duration-200 ${
+                          option.enabled ? "bg-black" : "bg-gray-200"
+                        }`}
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full bg-white transform transition-transform duration-200 ${
+                            option.enabled ? "translate-x-5" : "translate-x-1"
+                          }`}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
