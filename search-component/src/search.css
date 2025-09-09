@@ -1,0 +1,62 @@
+.search-box {
+  width: 100%;
+  max-width: 32rem;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  overflow-y: scroll; /* prevent scrollbars during animation */
+  scrollbar-width: none; /* for Firefox */
+  height: auto;
+  max-height: 3.5rem; /* collapsed */
+  transition: max-height 0.6s ease-in-out, transform 0.4s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+.search-box.expanded {
+  max-height: 500px; /* expanded */
+}
+
+
+.interface {
+  opacity: 0;
+  transform: translateY(-10px);
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.2s ease-in;
+}
+
+.interface.open {
+  opacity: 1;
+  transform: translateY(0);
+  max-height: 1000px; /* enough space for content */
+}
+
+.filter-menu {
+  position: absolute;
+  right: 0;
+  top: 3rem;
+  width: 12rem;
+  background: #fff;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  padding: 0.5rem 0;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(-5px);
+  pointer-events: none;
+  transition: opacity 0.2s ease-in, transform 0.2s ease-in;
+}
+
+.filter-menu.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
